@@ -5,30 +5,26 @@ require('dotenv').config();
 
 const app = express();
 
-// 1. NUCLEAR CORS FIX (Manual Headers - Must be first)
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*"); // Allow ANY frontend
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  
-  // Handle Preflight (OPTIONS) requests immediately
-  if (req.method === 'OPTIONS') {
-    return res.status(200).send({});
-  }
-  next();
-});
+// 1. ENABLE CORS (Allow Netlify & Localhost)
+app.use(cors({
+    origin: '*', // Allow all origins (Easiest for testing)
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
-// 2. Standard Middleware
+// Enable Preflight for all routes
+app.options('*', cors());
+
+// 2. Middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// 3. Database Check (Debugging)
+// 3. Database Connection
 const { poolPromise } = require('./config/db');
-// We don't await here to not block startup, but we log status
 poolPromise.then(() => {
-    console.log("✅ Database connection established in server.js");
+    console.log("✅ Database Connected!");
 }).catch(err => {
-    console.error("❌ Database connection FAILED in server.js:", err);
+    console.error("❌ Database Connection Failed:", err);
 });
 
 // 4. Routes
@@ -41,8 +37,14 @@ app.use('/api/shifts', require('./routes/shifts'));
 app.use('/api/reports', require('./routes/reports'));
 app.use("/api/dailylogs", require("./routes/dailyLogRoutes"));
 
-// 5. Health Check (Test this in browser!)
-app.get('/', (req, res) => res.send('RideRevenue API is Live & CORS is fixed!'));
+// 5. Global Error Handler (Prevents crashes from looking like CORS errors)
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ message: 'Internal Server Error', error: err.message });
+});
+
+// 6. Health Check
+app.get('/', (req, res) => res.send('RideRevenue API is Online'));
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
