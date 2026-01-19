@@ -7,7 +7,7 @@ const config = {
   database: process.env.DB_NAME,
   options: {
     encrypt: true,
-    trustServerCertificate: false
+    trustServerCertificate: true
   }
 };
 
