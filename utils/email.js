@@ -2,36 +2,30 @@ const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,              // Switch to STARTTLS port
-    secure: false,          // Must be false for port 587
+    service: 'gmail', // Built-in configuration for Gmail
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
     },
-    // CRITICAL FIXES FOR CLOUD TIMEOUTS:
-    tls: {
-        ciphers: 'SSLv3',
-        rejectUnauthorized: false
-    },
-    connectionTimeout: 10000, // 10 seconds max wait
-    greetingTimeout: 5000,    // 5 seconds max greeting
-    socketTimeout: 10000      // 10 seconds max socket idle
+    // CRITICAL FIX: Force IPv4. Render/Cloud often hangs on IPv6 lookups.
+    family: 4, 
 });
 
 const sendEmail = async (to, subject, text) => {
     try {
-        console.log(`⏳ Attempting to send email to ${to}...`);
+        console.log(`⏳ Sending email to ${to}...`);
+        
         const info = await transporter.sendMail({
             from: `"RideRevenue Security" <${process.env.EMAIL_USER}>`,
             to,
             subject,
             text
         });
-        console.log(`✅ Email sent successfully! Message ID: ${info.messageId}`);
+
+        console.log(`✅ Email sent! ID: ${info.messageId}`);
     } catch (err) {
-        console.error("❌ Email failed:", err);
-        throw err; 
+        console.error("❌ Email failed:", err.message);
+        throw err; // Stop execution so frontend knows it failed
     }
 };
 
