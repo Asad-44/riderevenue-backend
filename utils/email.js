@@ -1,31 +1,44 @@
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
+// Create a Pooled Transporter (Better for cloud connections)
 const transporter = nodemailer.createTransport({
-    service: 'gmail', // Built-in configuration for Gmail
+    pool: true,             // Use pooled connections
+    maxConnections: 1,      // Limit to 1 connection to avoid spam flags
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,           // Use SSL
     auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
+        pass: process.env.EMAIL_PASS,
     },
-    // CRITICAL FIX: Force IPv4. Render/Cloud often hangs on IPv6 lookups.
-    family: 4, 
+    tls: {
+        rejectUnauthorized: false, // Bypass SSL certificate issues
+    },
+    family: 4,    // Force IPv4
+    debug: true,  // Show verbose logs
+    logger: true  // Log to console
 });
 
 const sendEmail = async (to, subject, text) => {
     try {
-        console.log(`⏳ Sending email to ${to}...`);
+        console.log(`⏳ Authenticating as ${process.env.EMAIL_USER}...`);
         
+        // Verify connection config first
+        await transporter.verify();
+        console.log("✅ Server is ready to take our messages");
+
         const info = await transporter.sendMail({
-            from: `"RideRevenue Security" <${process.env.EMAIL_USER}>`,
+            from: process.env.EMAIL_USER, // Must match auth user exactly
             to,
             subject,
             text
         });
 
-        console.log(`✅ Email sent! ID: ${info.messageId}`);
+        console.log(`✅ Email sent: ${info.messageId}`);
     } catch (err) {
-        console.error("❌ Email failed:", err.message);
-        throw err; // Stop execution so frontend knows it failed
+        console.error("❌ Email Detailed Error:", err);
+        throw err;
     }
 };
 
