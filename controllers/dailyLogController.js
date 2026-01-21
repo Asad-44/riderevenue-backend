@@ -73,11 +73,12 @@ exports.getCombinedLogs = async (req, res) => {
             .query(`
                 SELECT 
                     m.Date,
+                    m.DriverID, m.VehicleID, -- Needed for Edit/Delete actions
                     d.Name AS DriverName,
                     v.NumberPlate,
                     m.StartReading,
                     m.EndReading,
-                    m.Distance,
+                    (m.EndReading - m.StartReading) as Mileage, -- <--- FIXED: Calculated on the fly
                     e.TotalEarnings,
                     e.FuelCost,
                     e.NetProfit
