@@ -1,43 +1,31 @@
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
-// Create a Pooled Transporter (Better for cloud connections)
 const transporter = nodemailer.createTransport({
-    pool: true,             // Use pooled connections
-    maxConnections: 1,      // Limit to 1 connection to avoid spam flags
-    host: "smtp.gmail.com",
-    port: 465,
-    secure: true,           // Use SSL
+    host: 'in-v3.mailjet.com',
+    port: 587,
+    secure: false, // use true for 465, false for other ports
     auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        user: process.env.EMAIL_USER, // Your Mailjet API Key
+        pass: process.env.EMAIL_PASS  // Your Mailjet Secret Key
     },
     tls: {
-        rejectUnauthorized: false, // Bypass SSL certificate issues
-    },
-    family: 4,    // Force IPv4
-    debug: true,  // Show verbose logs
-    logger: true  // Log to console
+        rejectUnauthorized: false
+    }
 });
 
 const sendEmail = async (to, subject, text) => {
     try {
-        console.log(`⏳ Authenticating as ${process.env.EMAIL_USER}...`);
-        
-        // Verify connection config first
-        await transporter.verify();
-        console.log("✅ Server is ready to take our messages");
-
+        console.log(`⏳ Sending email to ${to} via Mailjet...`);
         const info = await transporter.sendMail({
-            from: process.env.EMAIL_USER, // Must match auth user exactly
+            from: `"RideRevenue" <sp24-bse-069@cuilahore.edu.pk>`, // Must match Mailjet verified sender
             to,
             subject,
             text
         });
-
         console.log(`✅ Email sent: ${info.messageId}`);
     } catch (err) {
-        console.error("❌ Email Detailed Error:", err);
+        console.error("❌ Email Failed:", err);
         throw err;
     }
 };
