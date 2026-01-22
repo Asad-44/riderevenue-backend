@@ -12,7 +12,7 @@ const sendEmail = async (to, subject, text) => {
         console.log(`⏳ Sending email via API to ${to}...`);
 
         // IMPORTANT: The "From" email MUST be verified in your Mailjet account
-        const senderEmail = "sp24-bse-069@cuilahore.edu.pk"; 
+        const senderEmail = "asad.shafiq411@gmail.com"; 
 
         const request = await mailjet
             .post("send", { 'version': 'v3.1' })
