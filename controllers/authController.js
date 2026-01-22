@@ -147,4 +147,41 @@ const resetPassword = async (req, res) => {
     }
 };
 
-module.exports = { register, verifyEmail, login, forgotPassword, resetPassword };
+// Add this new function to authController.js
+
+const resendOtp = async (req, res) => {
+    try {
+        const { email } = req.body;
+        const pool = await poolPromise;
+
+        // Check if user exists
+        const user = await pool.request()
+            .input('email', sql.NVarChar, email)
+            .query("SELECT UserID, IsVerified FROM Users WHERE Email=@email");
+
+        if (user.recordset.length === 0) return res.status(404).json({ message: 'User not found' });
+        if (user.recordset[0].IsVerified) return res.status(400).json({ message: 'Account already verified. Please login.' });
+
+        // Generate New OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiry = new Date(Date.now() + 15 * 60 * 1000); 
+
+        // Update DB
+        await pool.request()
+            .input('email', sql.NVarChar, email)
+            .input('otp', sql.NVarChar, otp)
+            .input('expiry', sql.DateTime, expiry)
+            .query("UPDATE Users SET OtpCode=@otp, OtpExpiry=@expiry WHERE Email=@email");
+
+        // Send Email
+        await sendEmail(email, "New Verification Code", `Your new OTP code is: ${otp}`);
+
+        res.json({ message: 'New OTP sent successfully' });
+
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+// Don't forget to export it at the bottom:
+module.exports = { register, verifyEmail, login, forgotPassword, resetPassword, resendOtp };
