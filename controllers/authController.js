@@ -40,9 +40,9 @@ const register = async (req, res) => {
             `);
 
         // Send Email
-        await sendEmail(email, "Verify Your Account", `Your OTP code is: ${otp}`);
+        await sendEmail(email, "Your access code", `Your OTP code is: ${otp}`);
 
-        res.status(201).json({ message: 'OTP sent. Please verify to complete registration.' });
+        res.status(201).json({ message: 'OTP sent. Please verify to complete registration. (also check spam)' });
 
     } catch (err) {
         res.status(500).json({ message: err.message });

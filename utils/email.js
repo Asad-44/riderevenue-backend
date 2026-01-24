@@ -21,7 +21,7 @@ const sendEmail = async (to, subject, text) => {
                     {
                         "From": {
                             "Email": senderEmail,
-                            "Name": "RideRevenue Security"
+                            "Name": "Asad from RideRevenue Tracker"
                         },
                         "To": [
                             {
