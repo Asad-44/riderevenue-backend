@@ -9,8 +9,9 @@ require('dotenv').config();
 const getEmailHtml = (title, message, code) => `
 <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 500px; margin: auto; border: 1px solid #e8dcc8; border-radius: 12px; overflow: hidden; background-color: #ffffff;">
     <div style="background: #3d3530; color: #c4a880; padding: 25px; text-align: center;">
-        <h2 style="margin: 0; font-size: 24px; letter-spacing: 1px;">RideRevenue</h2>
-    </div>
+    <img src="https://img.icons8.com/ios-filled/100/c4a880/car.png" alt="RideRevenue" width="50" height="50" style="display: block; margin: 0 auto 10px;">
+    <h2 style="margin: 0; font-size: 24px; letter-spacing: 1px;">RideRevenue</h2>
+</div>
     <div style="padding: 30px; text-align: center; color: #3d3530;">
         <h3 style="margin-top: 0; color: #3d3530;">${title}</h3>
         <p style="font-size: 16px; color: #666; margin-bottom: 25px;">${message}</p>
@@ -55,7 +56,7 @@ const register = async (req, res) => {
         const html = getEmailHtml("Verify Your Account", "Please use the verification code below to activate your account.", otp);
         await sendEmail(email, "Verify Your Account", html);
 
-        res.status(201).json({ message: 'OTP sent. Please verify to complete registration. (Check Spam Folder)' });
+        res.status(201).json({ message: 'OTP sent. Please verify to complete registration. (Also check Spam Folder)' });
 
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -121,9 +122,9 @@ const forgotPassword = async (req, res) => {
     try {
         const { email } = req.body;
         const pool = await poolPromise;
-        
+
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        const expiry = new Date(Date.now() + 15 * 60 * 1000); 
+        const expiry = new Date(Date.now() + 15 * 60 * 1000);
 
         const result = await pool.request()
             .input('email', sql.NVarChar, email)
@@ -191,9 +192,9 @@ const resendOtp = async (req, res) => {
 
         // We check PendingUsers directly
         const pendingCheck = await pool.request().input('email', sql.NVarChar, email).query("SELECT PendingID FROM PendingUsers WHERE Email=@email");
-        
-        if(pendingCheck.recordset.length === 0) {
-             return res.status(404).json({ message: 'No pending registration found. Please Register again.' });
+
+        if (pendingCheck.recordset.length === 0) {
+            return res.status(404).json({ message: 'No pending registration found. Please Register again.' });
         }
 
         await pool.request()
